@@ -20,6 +20,14 @@ canvas{width:100%;height:210px;background:#0d1116;border-radius:12px}details sum
 nav{position:fixed;bottom:0;left:0;right:0;z-index:5;background:#11151b;border-top:1px solid var(--line);display:grid;grid-template-columns:repeat(4,1fr);padding:7px max(7px,env(safe-area-inset-right)) calc(7px + env(safe-area-inset-bottom))}
 nav button{font-size:11px;padding:9px 4px;background:transparent;color:var(--muted)}nav button.active{color:var(--acc)}
 .notice{border-left:4px solid var(--acc)}
+
+.equipgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:8px;margin-top:10px}
+.equipitem{display:flex;align-items:center;gap:8px;background:#10151b;border:1px solid var(--line);padding:10px;border-radius:12px}
+.equipitem input{width:auto}.subbtn{margin-top:10px;width:100%;background:#202833}
+.modal{position:fixed;inset:0;background:rgba(0,0,0,.72);z-index:20;display:flex;align-items:flex-end;justify-content:center}
+.modalbox{width:min(100%,760px);max-height:82vh;overflow:auto;background:#141a21;border:1px solid var(--line);border-radius:20px 20px 0 0;padding:16px}
+.altcard{border:1px solid var(--line);border-radius:14px;padding:12px;margin:9px 0;background:#0f141a}
+.tag{display:inline-block;padding:4px 7px;border-radius:999px;background:#1e2d24;color:#86e5a4;font-size:11px}
 </style></head><body>
 <header><h1>Meu Treino Pro</h1><small>Adaptação • 3x/semana • registro inteligente</small></header>
 <div class="wrap"><main>
@@ -55,8 +63,18 @@ nav button{font-size:11px;padding:9px 4px;background:transparent;color:var(--mut
 <div class="card notice"><b>Backup recomendado</b><p>Os dados ficam no aparelho. Exporte um backup periodicamente, principalmente antes de limpar dados do navegador ou trocar de celular.</p>
 <button class="primary" onclick="exportData()">Exportar backup</button>
 <label class="btn" style="margin-left:6px">Importar backup<input type="file" accept=".json" onchange="importData(event)" style="display:none"></label></div>
+
+<div class="card"><h3>Meus equipamentos</h3>
+<p class="muted">Marque os equipamentos disponíveis. O app prioriza substituições compatíveis.</p>
+<div class="equipgrid" id="equipmentGrid"></div></div>
 <div class="card"><h3>Como interpretar</h3><p>Na fase de adaptação, priorize técnica e consistência. Use em geral RPE 5–7. Evite treinar até a falha. O registro cardíaco serve para acompanhar resposta ao esforço e recuperação, não para diagnóstico.</p></div>
 </section>
 </main></div>
+
+<div id="subModal" class="modal hide" onclick="if(event.target===this)closeSubModal()">
+<div class="modalbox">
+<div class="exhead"><div><h2>Substituir exercício</h2><div class="muted" id="subCurrent"></div></div><button onclick="closeSubModal()">✕</button></div>
+<div id="subOptions"></div>
+</div></div>
 <nav><button data-tab="home" class="active">🏠<br>Treino</button><button data-tab="history">🗓️<br>Histórico</button><button data-tab="progress">📈<br>Evolução</button><button data-tab="settings">⚙️<br>Dados</button></nav>
 <script src="app.js"></script></body></html>

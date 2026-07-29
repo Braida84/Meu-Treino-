@@ -30,3 +30,14 @@ CONEXÃO XOSS X2
 7. Se outro app estiver usando a cinta via Bluetooth, feche-o antes do teste.
 
 Observação: Web Bluetooth exige HTTPS e navegador compatível. O registro cardíaco deste app não é ferramenta médica.
+
+
+NOVIDADES V3
+- Botão “Substituir exercício” em cada exercício.
+- Tela “Meus equipamentos” em Dados.
+- Alternativas equivalentes, mais fáceis ou avançadas.
+- Alternativas incompatíveis ficam bloqueadas.
+- A escolha fica salva para os próximos treinos.
+- O histórico registra o exercício realmente executado.
+
+Para atualizar no GitHub, substitua os arquivos antigos por todos os arquivos deste pacote.
