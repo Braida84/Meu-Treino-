@@ -1,4 +1,4 @@
-// Meu Treino Pro v5.2.1 — camada de treino inteligente + BLE
+// Meu Treino Pro v5.2.2 — treino inteligente + BLE
 const v51EquipmentProfiles=[
  {patterns:['halter ajustavel','halter ajustável','dumbbell'],label:'Halter/peso livre',base:'dumbbells'},
  {patterns:['barra fixa','pullup','pull up'],label:'Barra fixa',base:'pullup_bar'},
@@ -35,37 +35,41 @@ const v51ExerciseLibrary=[
 function v51Norm(s=''){return s.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'')}
 function v51Recognize(name){const n=v51Norm(name);return v51EquipmentProfiles.find(p=>p.patterns.some(x=>n.includes(v51Norm(x))))||{label:'Equipamento personalizado',base:null}}
 function updateEquipmentRecognition(){
- const input=document.getElementById('eqName'),out=document.getElementById('eqRecognition'),list=document.getElementById('eqSuggestedExercises'); if(!input||!out||!list)return;
+ const input=document.getElementById('eqName'),out=document.getElementById('eqRecognition'),list=document.getElementById('eqSuggestedExercises');if(!input||!out||!list)return;
  if(!input.value.trim()){out.textContent='Digite o nome do equipamento para identificar o tipo.';list.innerHTML='';return}
  const p=v51Recognize(input.value);out.innerHTML='Reconhecido como: <strong>'+p.label+'</strong>';
  const have=new Set(typeof selectedEquipment==='function'?selectedEquipment():[]);if(p.base)have.add(p.base);
  const ex=v51ExerciseLibrary.filter(e=>p.base&&e.equipment.includes(p.base)&&e.equipment.every(x=>have.has(x))).slice(0,6);
  list.innerHTML=ex.length?ex.map(e=>'<div class="altcard"><b>'+e.name+'</b><div class="accent">'+e.muscle+'</div><div class="muted">'+e.target+'</div></div>').join(''):'<div class="muted">Nenhuma sugestão automática para este tipo ainda.</div>';
 }
+function v522Catalog(){try{return typeof getEquipmentCatalog==='function'?getEquipmentCatalog():[]}catch(e){return []}}
+function v522AvailableIds(){return new Set(v522Catalog().filter(e=>e.available!==false).map(e=>String(e.id)))}
 function v52ImportedExercises(){
  try{
-  const have=new Set(typeof selectedEquipment==='function'?selectedEquipment():[]);
-  const extra=JSON.parse(localStorage.getItem('importedExerciseLibraryV52')||'[]');
-  return Array.isArray(extra)?extra.filter(e=>(e.equipment||[]).every(id=>have.has(id))):[];
+  const have=v522AvailableIds();const extra=JSON.parse(localStorage.getItem('importedExerciseLibraryV52')||'[]');
+  return Array.isArray(extra)?extra.filter(e=>{const req=Array.isArray(e.equipment)?e.equipment:[];return req.length===0||req.every(id=>have.has(String(id)))}):[];
  }catch(e){return []}
 }
 function v52WorkoutPool(){
- const have=new Set(typeof selectedEquipment==='function'?selectedEquipment():[]);
- const base=v51ExerciseLibrary.filter(e=>e.equipment.every(x=>have.has(x)));
+ const have=v522AvailableIds();
+ const base=v51ExerciseLibrary.filter(e=>e.equipment.every(x=>have.has(String(x))));
  const extra=v52ImportedExercises();
  return [...base,...extra.filter(e=>!base.some(b=>b.name.toLowerCase()===String(e.name).toLowerCase()))];
 }
+function v522Pick(pool,group,n){
+ const importedNames=new Set(v52ImportedExercises().map(e=>String(e.name).toLowerCase()));
+ return pool.filter(e=>e.group===group).sort((a,b)=>Number(importedNames.has(String(b.name).toLowerCase()))-Number(importedNames.has(String(a.name).toLowerCase()))).slice(0,n);
+}
 function recalculateWorkouts(){
  const pool=v52WorkoutPool();
- const take=(g,n)=>pool.filter(e=>e.group===g).slice(0,n);
- const generated={A:[...take('cardio',1),...take('push',5),...take('core',1)],B:[...take('cardio',1),...take('pull',5),...take('core',1)],C:[...take('cardio',1),...take('legs',6),...take('core',1)]};
+ const generated={A:[...v522Pick(pool,'cardio',1),...v522Pick(pool,'push',5),...v522Pick(pool,'core',1)],B:[...v522Pick(pool,'cardio',1),...v522Pick(pool,'pull',5),...v522Pick(pool,'core',1)],C:[...v522Pick(pool,'cardio',1),...v522Pick(pool,'legs',6),...v522Pick(pool,'core',1)]};
  localStorage.setItem('generatedWorkoutsV5',JSON.stringify(generated));renderGeneratedNotice();
- const imported=v52ImportedExercises().length;
- alert('Sugestões recalculadas com os equipamentos disponíveis. '+imported+' exercício(s) importado(s) compatível(is) considerado(s). O treino original foi preservado.');
+ const imported=v52ImportedExercises();
+ alert('Treinos recalculados. '+imported.length+' exercício(s) dos equipamentos importados estão disponíveis e agora têm prioridade nas sugestões.');
 }
 function renderGeneratedNotice(){
  const box=document.getElementById('generatedNotice');if(!box)return;let data=null;try{data=JSON.parse(localStorage.getItem('generatedWorkoutsV5'))}catch(e){}if(!data){box.classList.add('hide');return}
- const day=document.getElementById('day')?.value||'A',arr=data[day]||[];box.classList.remove('hide');box.innerHTML='<b>Sugestão automática com seus equipamentos</b><div class="muted">O treino principal continua preservado.</div>'+arr.map(e=>'<div class="historyrow"><span>'+e.name+'</span><span>'+e.target+'</span></div>').join('');
+ const day=document.getElementById('day')?.value||'A',arr=data[day]||[];box.classList.remove('hide');box.innerHTML='<b>Treino recalculado com seus equipamentos</b><div class="muted">Sugestão baseada nos equipamentos marcados como disponíveis. O treino original continua preservado.</div>'+arr.map(e=>'<div class="historyrow"><span>'+e.name+'</span><span>'+e.target+'</span></div>').join('');
 }
 function setHRDiag(msg){const el=document.getElementById('hrDiag');if(el)el.textContent=new Date().toLocaleTimeString('pt-BR')+' — '+msg}
 async function connectHR(){
@@ -83,9 +87,7 @@ async function connectHR(){
 document.addEventListener('DOMContentLoaded',()=>{
  const btn=[...document.querySelectorAll('button')].find(b=>b.getAttribute('onclick')==='connectHR()');if(btn)btn.textContent='Procurar cinta BLE';
  const hrCard=document.getElementById('hrStatus')?.closest('.card');if(hrCard&&!document.getElementById('hrDiag')){const d=document.createElement('div');d.className='recognition';d.innerHTML='<b>Diagnóstico Bluetooth</b><div class="muted" id="hrDiag">Aguardando tentativa de conexão.</div>';hrCard.appendChild(d)}
- const manager=document.getElementById('equipmentManager');if(manager){const bar=manager.previousElementSibling;if(bar&&!bar.querySelector('[data-v51-recalc]')){const b=document.createElement('button');b.dataset.v51Recalc='1';b.textContent='↻ Recalcular treinos';b.onclick=recalculateWorkouts;bar.insertBefore(b,bar.lastElementChild)}}
  const notes=document.getElementById('eqNotes');if(notes&&!document.getElementById('eqRecognition')){const r=document.createElement('div');r.className='recognition';r.innerHTML='<b>Reconhecimento inteligente</b><div class="muted" id="eqRecognition">Digite o nome do equipamento para identificar o tipo.</div><div id="eqSuggestedExercises" class="exlib"></div>';notes.closest('label').after(r)}
  document.getElementById('eqName')?.addEventListener('input',updateEquipmentRecognition);
- const wl=document.getElementById('workoutList');if(wl&&!document.getElementById('generatedNotice')){const g=document.createElement('div');g.id='generatedNotice';g.className='card hide';wl.before(g)}
  document.getElementById('day')?.addEventListener('change',renderGeneratedNotice);renderGeneratedNotice();
 });
