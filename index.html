@@ -1,0 +1,100 @@
+<!doctype html><html lang="pt-BR"><head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Meu Treino Pro</title><link rel="manifest" href="manifest.webmanifest"><meta name="theme-color" content="#0f1115">
+<link rel="apple-touch-icon" href="icon-192.png">
+<style>
+:root{--bg:#0e1116;--card:#171b22;--card2:#11151b;--line:#2b333f;--txt:#f4f7fb;--muted:#aeb7c4;--acc:#59d185;--danger:#ff6b6b}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--txt);font:15px system-ui,-apple-system,Segoe UI,Roboto,sans-serif}
+header{position:sticky;top:0;z-index:4;background:rgba(14,17,22,.96);backdrop-filter:blur(8px);padding:14px 15px;border-bottom:1px solid var(--line)}
+header h1{font-size:20px;margin:0}header small,.muted{color:var(--muted)}
+.wrap{max-width:980px;margin:auto;padding:13px 13px 92px}.card{background:var(--card);border:1px solid var(--line);border-radius:17px;padding:14px;margin:10px 0}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(145px,1fr));gap:10px}.metric{background:var(--card2);padding:13px;border-radius:14px}.metric b{display:block;font-size:25px}
+button,.btn{border:0;border-radius:12px;padding:10px 12px;background:#242b35;color:var(--txt);font-weight:700}.primary{background:var(--acc);color:#07130b}.danger{background:#3a2225;color:#ffd5d5}
+input,select,textarea{width:100%;background:#0d1116;border:1px solid var(--line);color:var(--txt);border-radius:10px;padding:10px;font:inherit}
+label{font-size:12px;color:var(--muted)}h2{font-size:19px}h3{font-size:16px;margin:0}.accent{color:var(--acc);font-size:12px;font-weight:700;margin-top:3px}
+.exhead{display:flex;justify-content:space-between;gap:10px;align-items:flex-start}.iconbtn{text-decoration:none;background:#242b35;color:white;border-radius:11px;padding:8px}
+.sets{display:grid;gap:7px}.setrow{display:grid;grid-template-columns:32px 1fr 1fr 1fr 42px;gap:6px;align-items:center}.setrow input{padding:8px}.done{padding:8px}.done.ok{background:var(--acc);color:#06110a}
+.hrhero{display:flex;align-items:center;gap:14px}.heart{font-size:34px}.hrnum{font-size:38px;font-weight:800}.dot{width:9px;height:9px;border-radius:50%;display:inline-block;background:#56606d}.dot.on{background:var(--acc);box-shadow:0 0 10px var(--acc)}
+.timer{font-size:30px;font-variant-numeric:tabular-nums;font-weight:800}.historyrow{display:flex;justify-content:space-between;gap:12px;padding:9px 0;border-bottom:1px solid var(--line);font-size:13px}
+canvas{width:100%;height:210px;background:#0d1116;border-radius:12px}details summary{cursor:pointer;padding:8px 0}.hide{display:none!important}
+nav{position:fixed;bottom:0;left:0;right:0;z-index:5;background:#11151b;border-top:1px solid var(--line);display:grid;grid-template-columns:repeat(4,1fr);padding:7px max(7px,env(safe-area-inset-right)) calc(7px + env(safe-area-inset-bottom))}
+nav button{font-size:11px;padding:9px 4px;background:transparent;color:var(--muted)}nav button.active{color:var(--acc)}
+.notice{border-left:4px solid var(--acc)}
+
+.equipgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:8px;margin-top:10px}
+.equipitem{display:flex;align-items:center;gap:8px;background:#10151b;border:1px solid var(--line);padding:10px;border-radius:12px}
+.equipitem input{width:auto}.subbtn{margin-top:10px;width:100%;background:#202833}
+.modal{position:fixed;inset:0;background:rgba(0,0,0,.72);z-index:20;display:flex;align-items:flex-end;justify-content:center}
+.modalbox{width:min(100%,760px);max-height:82vh;overflow:auto;background:#141a21;border:1px solid var(--line);border-radius:20px 20px 0 0;padding:16px}
+.altcard{border:1px solid var(--line);border-radius:14px;padding:12px;margin:9px 0;background:#0f141a}
+.tag{display:inline-block;padding:4px 7px;border-radius:999px;background:#1e2d24;color:#86e5a4;font-size:11px}
+
+.managebar{display:flex;gap:8px;flex-wrap:wrap;margin:10px 0}
+.equipment-card{background:#10151b;border:1px solid var(--line);border-radius:14px;padding:12px;margin:8px 0}
+.eqtop{display:flex;justify-content:space-between;gap:10px;align-items:flex-start}
+.eqactions{display:flex;gap:6px;flex-wrap:wrap}.eqmeta{font-size:12px;color:var(--muted);margin-top:5px}
+.badge{display:inline-block;padding:3px 7px;border-radius:999px;background:#26303a;color:#d8e0e8;font-size:10px;margin-right:4px}
+.badge.off{background:#3a2527;color:#ffd0d0}.modal input,.modal select,.modal textarea{margin-top:4px}
+</style></head><body>
+<header><h1>Meu Treino Pro</h1><small>Adaptação • 3x/semana • registro inteligente</small></header>
+<div class="wrap"><main>
+<section id="home">
+<div class="grid">
+<div class="metric"><span class="muted">Sessões</span><b id="dashSessions">0</b></div>
+<div class="metric"><span class="muted">Minutos</span><b id="dashMinutes">0</b></div>
+<div class="metric"><span class="muted">Último treino</span><b id="dashLast" style="font-size:18px">—</b></div>
+</div>
+<div class="card"><div class="hrhero"><div class="heart">♥</div><div><div><span class="dot" id="hrDot"></span> <span id="hrStatus">Cinta não conectada</span></div><div><span class="hrnum" id="hrNow">--</span> bpm</div></div></div>
+<div class="grid" style="margin-top:10px"><div class="metric">Média <b id="hrAvg">--</b></div><div class="metric">Máxima <b id="hrMax">--</b></div></div>
+<div style="display:flex;gap:8px;margin-top:10px"><button class="primary" onclick="connectHR()">Conectar XOSS X2</button><button onclick="disconnectHR()">Desconectar</button></div>
+<p class="muted">A conexão usa Bluetooth Low Energy e deve ser iniciada por você tocando no botão.</p></div>
+<div class="card"><h2>Treino de hoje</h2>
+<div class="grid"><label>Dia<select id="day"><option value="A">A — Peito/Ombros/Tríceps</option><option value="B">B — Costas/Bíceps</option><option value="C">C — Pernas/Glúteos</option></select></label>
+<label>Fase<select id="phase"><option value="1">Semanas 1–2</option><option value="2">Semanas 3–6</option></select></label></div>
+<div class="grid" style="margin-top:12px"><div><div class="muted" id="sessionStatus">Pronto para iniciar</div><div class="timer" id="sessionTime">00:00</div></div><div style="display:flex;gap:8px;align-items:center"><button id="startBtn" class="primary" onclick="startSession()">Iniciar</button><button id="finishBtn" disabled onclick="finishSession()">Finalizar</button></div></div>
+</div>
+<div id="restBox" class="card hide"><div class="exhead"><div><b>Descanso</b><div class="timer" id="restTime">01:15</div></div><div><button onclick="addRest(-15)">−15s</button> <button onclick="addRest(15)">+15s</button></div></div></div>
+<div id="workoutList"></div>
+<div class="card"><label>Observações da sessão<textarea id="sessionNotes" rows="4" placeholder="Sono, desconfortos, execução, sensação geral..."></textarea></label></div>
+</section>
+
+<section id="history" class="hide"><h2>Histórico</h2><div id="historyList"></div></section>
+
+<section id="progress" class="hide"><h2>Evolução</h2>
+<div class="card"><h3>Melhores marcas registradas</h3><div id="prList"></div></div>
+<div class="card"><h3>Duração dos treinos</h3><canvas id="durationChart" width="900" height="260"></canvas></div>
+<div class="card"><h3>Frequência cardíaca — último treino</h3><canvas id="hrChart" width="900" height="260"></canvas></div>
+</section>
+
+<section id="settings" class="hide"><h2>Dados e configurações</h2>
+<div class="card notice"><b>Backup recomendado</b><p>Os dados ficam no aparelho. Exporte um backup periodicamente, principalmente antes de limpar dados do navegador ou trocar de celular.</p>
+<button class="primary" onclick="exportData()">Exportar backup</button>
+<label class="btn" style="margin-left:6px">Importar backup<input type="file" accept=".json" onchange="importData(event)" style="display:none"></label></div>
+
+<div class="card"><h3>Gerenciar equipamentos</h3>
+<p class="muted">Cadastre, edite, desative ou exclua equipamentos. O histórico antigo é preservado.</p>
+<div class="managebar"><button class="primary" onclick="openEquipmentModal()">+ Adicionar equipamento</button><button onclick="restoreDefaultEquipment()">Restaurar lista padrão</button></div>
+<div id="equipmentManager"></div></div>
+<div class="card"><h3>Como interpretar</h3><p>Na fase de adaptação, priorize técnica e consistência. Use em geral RPE 5–7. Evite treinar até a falha. O registro cardíaco serve para acompanhar resposta ao esforço e recuperação, não para diagnóstico.</p></div>
+</section>
+</main></div>
+
+
+<div id="equipmentModal" class="modal hide" onclick="if(event.target===this)closeEquipmentModal()">
+<div class="modalbox">
+<div class="exhead"><div><h2 id="equipmentModalTitle">Adicionar equipamento</h2></div><button onclick="closeEquipmentModal()">✕</button></div>
+<input type="hidden" id="eqEditId">
+<label>Nome<input id="eqName" type="text" placeholder="Ex.: Halter ajustável 2,5–24 kg"></label>
+<label>Categoria<select id="eqCategory"><option>Musculação</option><option>Peso livre</option><option>Cardio</option><option>Acessório</option><option>Mobilidade</option><option>Outro</option></select></label>
+<label>Observações<textarea id="eqNotes" rows="3" placeholder="Ex.: carga máxima, tamanho, detalhes"></textarea></label>
+<label class="equipitem" style="margin-top:10px"><input id="eqAvailable" type="checkbox" checked> Disponível para uso</label>
+<div class="managebar"><button class="primary" onclick="saveEquipment()">Salvar</button><button onclick="closeEquipmentModal()">Cancelar</button></div>
+</div></div>
+
+<div id="subModal" class="modal hide" onclick="if(event.target===this)closeSubModal()">
+<div class="modalbox">
+<div class="exhead"><div><h2>Substituir exercício</h2><div class="muted" id="subCurrent"></div></div><button onclick="closeSubModal()">✕</button></div>
+<div id="subOptions"></div>
+</div></div>
+<nav><button data-tab="home" class="active">🏠<br>Treino</button><button data-tab="history">🗓️<br>Histórico</button><button data-tab="progress">📈<br>Evolução</button><button data-tab="settings">⚙️<br>Dados</button></nav>
+<script src="app.js"></script></body></html>
