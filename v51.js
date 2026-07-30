@@ -1,4 +1,4 @@
-// Meu Treino Pro v5.1 — camada de atualização sobre a v4
+// Meu Treino Pro v5.2.1 — camada de treino inteligente + BLE
 const v51EquipmentProfiles=[
  {patterns:['halter ajustavel','halter ajustável','dumbbell'],label:'Halter/peso livre',base:'dumbbells'},
  {patterns:['barra fixa','pullup','pull up'],label:'Barra fixa',base:'pullup_bar'},
@@ -42,10 +42,26 @@ function updateEquipmentRecognition(){
  const ex=v51ExerciseLibrary.filter(e=>p.base&&e.equipment.includes(p.base)&&e.equipment.every(x=>have.has(x))).slice(0,6);
  list.innerHTML=ex.length?ex.map(e=>'<div class="altcard"><b>'+e.name+'</b><div class="accent">'+e.muscle+'</div><div class="muted">'+e.target+'</div></div>').join(''):'<div class="muted">Nenhuma sugestão automática para este tipo ainda.</div>';
 }
+function v52ImportedExercises(){
+ try{
+  const have=new Set(typeof selectedEquipment==='function'?selectedEquipment():[]);
+  const extra=JSON.parse(localStorage.getItem('importedExerciseLibraryV52')||'[]');
+  return Array.isArray(extra)?extra.filter(e=>(e.equipment||[]).every(id=>have.has(id))):[];
+ }catch(e){return []}
+}
+function v52WorkoutPool(){
+ const have=new Set(typeof selectedEquipment==='function'?selectedEquipment():[]);
+ const base=v51ExerciseLibrary.filter(e=>e.equipment.every(x=>have.has(x)));
+ const extra=v52ImportedExercises();
+ return [...base,...extra.filter(e=>!base.some(b=>b.name.toLowerCase()===String(e.name).toLowerCase()))];
+}
 function recalculateWorkouts(){
- const have=new Set(typeof selectedEquipment==='function'?selectedEquipment():[]);const pool=v51ExerciseLibrary.filter(e=>e.equipment.every(x=>have.has(x)));
- const take=(g,n)=>pool.filter(e=>e.group===g).slice(0,n);const generated={A:[...take('cardio',1),...take('push',5),...take('core',1)],B:[...take('cardio',1),...take('pull',5),...take('core',1)],C:[...take('cardio',1),...take('legs',6),...take('core',1)]};
- localStorage.setItem('generatedWorkoutsV5',JSON.stringify(generated));renderGeneratedNotice();alert('Sugestões recalculadas com os equipamentos disponíveis. O treino original foi preservado.');
+ const pool=v52WorkoutPool();
+ const take=(g,n)=>pool.filter(e=>e.group===g).slice(0,n);
+ const generated={A:[...take('cardio',1),...take('push',5),...take('core',1)],B:[...take('cardio',1),...take('pull',5),...take('core',1)],C:[...take('cardio',1),...take('legs',6),...take('core',1)]};
+ localStorage.setItem('generatedWorkoutsV5',JSON.stringify(generated));renderGeneratedNotice();
+ const imported=v52ImportedExercises().length;
+ alert('Sugestões recalculadas com os equipamentos disponíveis. '+imported+' exercício(s) importado(s) compatível(is) considerado(s). O treino original foi preservado.');
 }
 function renderGeneratedNotice(){
  const box=document.getElementById('generatedNotice');if(!box)return;let data=null;try{data=JSON.parse(localStorage.getItem('generatedWorkoutsV5'))}catch(e){}if(!data){box.classList.add('hide');return}
